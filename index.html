@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sidra Tul Muntaha | CS Student & Developer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+  <style>
+    /* ── TOKENS ── */
+    :root{
+      --bg:#05070f;
+      --surface:rgba(255,255,255,0.04);
+      --border:rgba(255,255,255,0.07);
+      --blue:#5b9bf8;
+      --violet:#a78bfa;
+      --teal:#2dd4bf;
+      --text:#e2e8f0;
+      --muted:#94a3b8;
+      --r:18px;
+    }
+
+    /* ── RESET ── */
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;scroll-behavior:smooth}
+
+    body{
+      font-family:'DM Sans',sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      overflow-x:hidden;
+      cursor:none;
+    }
+
+    /* ── CUSTOM CURSOR ── */
+    #cursor{
+      width:18px;height:18px;
+      border:1.5px solid var(--blue);
+      border-radius:50%;
+      position:fixed;pointer-events:none;
+      transform:translate(-50%,-50%);
+      z-index:9999;
+      transition:transform .12s,background .2s,width .2s,height .2s;
+    }
+    #cursor-dot{
+      width:5px;height:5px;
+      background:var(--violet);
+      border-radius:50%;
+      position:fixed;pointer-events:none;
+      transform:translate(-50%,-50%);
+      z-index:9999;
+    }
+    body:has(a:hover,button:hover) #cursor{
+      transform:translate(-50%,-50%) scale(1.8);
+      background:rgba(91,155,248,0.12);
+    }
+
+    /* ── NOISE TEXTURE OVERLAY ── */
+    body::before{
+      content:"";
+      position:fixed;inset:0;
+      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");
+      pointer-events:none;z-index:0;opacity:.4;
+    }
+
+    /* ── AMBIENT BLOBS ── */
+    .blob{
+      position:fixed;border-radius:50%;filter:blur(120px);
+      pointer-events:none;z-index:0;
+    }
+    .blob-1{width:600px;height:600px;background:rgba(91,155,248,.12);top:-200px;right:-150px;}
+    .blob-2{width:500px;height:500px;background:rgba(167,139,250,.10);bottom:-150px;left:-100px;}
+    .blob-3{width:300px;height:300px;background:rgba(45,212,191,.07);top:50%;left:40%;}
+
+    /* ── LOADER ── */
+    #loader{
+      position:fixed;inset:0;
+      background:var(--bg);
+      display:flex;flex-direction:column;
+      align-items:center;justify-content:center;
+      z-index:10000;
+      animation:loaderOut 1s ease forwards;
+      animation-delay:2.8s;
+    }
+    #loader .l-name{
+      font-family:'Syne',sans-serif;
+      font-size:clamp(36px,6vw,72px);
+      font-weight:800;
+      letter-spacing:-2px;
+      background:linear-gradient(135deg,var(--blue),var(--violet));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+      animation:pulseScale 1.8s ease-in-out infinite alternate;
+    }
+    #loader .l-sub{
+      color:var(--muted);font-size:14px;letter-spacing:4px;
+      text-transform:uppercase;margin-top:12px;
+      animation:fadeUp .6s ease .3s both;
+    }
+    .l-bar{
+      width:180px;height:2px;
+      background:var(--border);
+      border-radius:4px;margin-top:30px;overflow:hidden;
+    }
+    .l-bar-fill{
+      height:100%;width:0;
+      background:linear-gradient(90deg,var(--blue),var(--violet));
+      border-radius:4px;
+      animation:barFill 2.5s ease forwards;
+    }
+    @keyframes barFill{to{width:100%}}
+    @keyframes pulseScale{from{opacity:.7;transform:scale(.97)}to{opacity:1;transform:scale(1.02)}}
+    @keyframes loaderOut{to{opacity:0;visibility:hidden;pointer-events:none}}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+    /* ── NAV ── */
+    nav{
+      position:fixed;top:0;left:0;right:0;
+      padding:18px 8%;
+      display:flex;align-items:center;justify-content:space-between;
+      background:rgba(5,7,15,.7);
+      backdrop-filter:blur(16px);
+      border-bottom:1px solid var(--border);
+      z-index:1000;
+    }
+    .nav-logo{
+      font-family:'Syne',sans-serif;
+      font-weight:800;font-size:22px;
+      background:linear-gradient(135deg,var(--blue),var(--violet));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    }
+    nav ul{display:flex;gap:32px;list-style:none;}
+    nav ul a{
+      color:var(--muted);text-decoration:none;
+      font-size:14px;font-weight:500;letter-spacing:.3px;
+      transition:color .2s;
+    }
+    nav ul a:hover{color:var(--text);}
+    .nav-cta{
+      padding:9px 22px;border-radius:50px;
+      background:linear-gradient(135deg,var(--blue),var(--violet));
+      color:#fff;text-decoration:none;font-size:13px;font-weight:600;
+      transition:opacity .2s,transform .2s;
+    }
+    .nav-cta:hover{opacity:.85;transform:translateY(-1px);}
+
+    /* ── HERO ── */
+    .hero{
+      min-height:100vh;
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      align-items:center;
+      padding:0 8%;
+      gap:60px;
+      position:relative;z-index:1;
+    }
+    .hero-left{animation:fadeUp .9s ease .3s both;}
+    .hero-eyebrow{
+      display:inline-flex;align-items:center;gap:8px;
+      font-size:13px;letter-spacing:2px;text-transform:uppercase;
+      color:var(--teal);margin-bottom:20px;font-weight:500;
+    }
+    .hero-eyebrow span{
+      width:28px;height:1.5px;background:var(--teal);display:block;
+    }
+    .hero-name{
+      font-family:'Syne',sans-serif;
+      font-size:clamp(44px,5.5vw,78px);
+      font-weight:800;line-height:1.0;
+      letter-spacing:-2px;margin-bottom:24px;
+    }
+    .hero-name em{
+      font-style:normal;
+      background:linear-gradient(135deg,var(--blue) 30%,var(--violet));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    }
+    .hero-desc{
+      color:var(--muted);line-height:1.85;
+      font-size:16px;max-width:480px;margin-bottom:36px;
+      font-weight:300;
+    }
+    .hero-btns{display:flex;gap:14px;flex-wrap:wrap;}
+    .btn-primary{
+      padding:14px 32px;border-radius:50px;
+      background:linear-gradient(135deg,var(--blue),var(--violet));
+      color:#fff;text-decoration:none;font-weight:600;font-size:14px;
+      transition:transform .2s,opacity .2s;
+      box-shadow:0 8px 32px rgba(91,155,248,.25);
+    }
+    .btn-primary:hover{transform:translateY(-3px);}
+    .btn-outline{
+      padding:13px 30px;border-radius:50px;
+      border:1.5px solid var(--border);
+      color:var(--text);text-decoration:none;font-weight:500;font-size:14px;
+      background:var(--surface);
+      transition:border-color .2s,transform .2s;
+      backdrop-filter:blur(10px);
+    }
+    .btn-outline:hover{border-color:var(--blue);transform:translateY(-3px);}
+
+    /* hero stats */
+    .hero-stats{
+      display:flex;gap:32px;margin-top:44px;
+      padding-top:32px;border-top:1px solid var(--border);
+    }
+    .stat-item h4{
+      font-family:'Syne',sans-serif;
+      font-size:28px;font-weight:700;
+      background:linear-gradient(135deg,var(--blue),var(--violet));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    }
+    .stat-item p{font-size:12px;color:var(--muted);margin-top:2px;letter-spacing:.3px;}
+
+    /* hero right — avatar card */
+    .hero-right{
+      display:flex;justify-content:center;align-items:center;
+      animation:float 6s ease-in-out infinite;
+    }
+    .avatar-card{
+      position:relative;
+      width:340px;
+    }
+    .avatar-frame{
+      width:340px;height:400px;
+      border-radius:28px;
+      background:linear-gradient(145deg,rgba(91,155,248,.15),rgba(167,139,250,.1));
+      border:1px solid rgba(91,155,248,.2);
+      overflow:hidden;
+      position:relative;
+    }
+    /* SVG illustrated avatar since no photo available */
+    .avatar-svg{
+      width:100%;height:100%;
+      display:flex;align-items:center;justify-content:center;
+    }
+    .avatar-badge{
+      position:absolute;bottom:-18px;right:20px;
+      background:rgba(5,7,15,.9);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:12px 18px;
+      backdrop-filter:blur(16px);
+      display:flex;align-items:center;gap:10px;
+      white-space:nowrap;
+    }
+    .badge-dot{
+      width:8px;height:8px;border-radius:50%;
+      background:var(--teal);
+      box-shadow:0 0 8px var(--teal);
+      animation:blink 2s ease infinite;
+    }
+    @keyframes blink{50%{opacity:.3}}
+    .avatar-badge span{font-size:13px;font-weight:500;}
+
+    .deco-ring{
+      position:absolute;top:-20px;left:-20px;
+      width:120px;height:120px;
+      border-radius:50%;
+      border:1px dashed rgba(91,155,248,.3);
+      animation:spin 20s linear infinite;
+    }
+    .deco-ring::before{
+      content:"";position:absolute;top:6px;left:6px;right:6px;bottom:6px;
+      border-radius:50%;border:1px dashed rgba(167,139,250,.2);
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    @keyframes float{
+      0%,100%{transform:translateY(0)}
+      50%{transform:translateY(-18px)}
+    }
+
+    /* ── SECTION BASE ── */
+    section{padding:100px 8%;position:relative;z-index:1;}
+    .section-label{
+      display:inline-flex;align-items:center;gap:8px;
+      font-size:11px;letter-spacing:3px;text-transform:uppercase;
+      color:var(--blue);margin-bottom:14px;font-weight:600;
+    }
+    .section-label::before{
+      content:"";width:20px;height:1.5px;background:var(--blue);
+    }
+    .section-title{
+      font-family:'Syne',sans-serif;
+      font-size:clamp(34px,4vw,52px);
+      font-weight:700;letter-spacing:-1.5px;
+      margin-bottom:60px;line-height:1.1;
+    }
+    .section-title span{
+      background:linear-gradient(135deg,var(--blue),var(--violet));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    }
+
+    /* ── ABOUT ── */
+    .about-grid{
+      display:grid;grid-template-columns:1.2fr 1fr;
+      gap:50px;align-items:start;
+    }
+    .about-text{color:var(--muted);line-height:1.9;font-size:15px;font-weight:300;}
+    .about-text p+p{margin-top:16px;}
+    .about-text strong{color:var(--text);font-weight:500;}
+
+    .about-sidebar{display:flex;flex-direction:column;gap:20px;}
+    .info-card{
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius:var(--r);
+      padding:24px;
+      transition:border-color .3s;
+    }
+    .info-card:hover{border-color:rgba(91,155,248,.25);}
+    .info-card-label{
+      font-size:11px;letter-spacing:2px;text-transform:uppercase;
+      color:var(--blue);margin-bottom:10px;font-weight:600;
+    }
+    .info-card h4{
+      font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:6px;
+    }
+    .info-card p{color:var(--muted);font-size:14px;line-height:1.6;}
+    .tag-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+    .tag{
+      font-size:12px;padding:4px 12px;border-radius:20px;
+      background:rgba(91,155,248,.1);color:var(--blue);
+      border:1px solid rgba(91,155,248,.15);font-weight:500;
+    }
+
+    /* ── SKILLS ── */
+    .skills-section{background:rgba(255,255,255,.02);}
+    .skills-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+      gap:20px;
+    }
+    .skill-card{
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius:var(--r);
+      padding:28px 24px;
+      position:relative;overflow:hidden;
+      transition:transform .3s,border-color .3s,box-shadow .3s;
+    }
+    .skill-card::before{
+      content:"";position:absolute;
+      width:100px;height:100px;border-radius:50%;
+      background:radial-gradient(circle,rgba(91,155,248,.15),transparent);
+      top:-40px;right:-30px;
+      transition:transform .5s;
+    }
+    .skill-card:hover{
+      transform:translateY(-6px);
+      border-color:rgba(91,155,248,.2);
+      box-shadow:0 16px 40px rgba(0,0,0,.3);
+    }
+    .skill-card:hover::before{transform:scale(1.5);}
+    .skill-icon{
+      font-size:28px;margin-bottom:14px;
+    }
+    .skill-card h3{
+      font-family:'Syne',sans-serif;font-size:15px;font-weight:700;
+      margin-bottom:10px;color:var(--text);
+    }
+    .skill-tags{display:flex;flex-wrap:wrap;gap:6px;}
+    .skill-tag{
+      font-size:11px;padding:3px 9px;border-radius:12px;
+      background:rgba(255,255,255,.06);color:var(--muted);
+      border:1px solid var(--border);
+    }
+
+    /* ── PROJECTS ── */
+    .projects-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+      gap:28px;
+    }
+    .project-card{
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius:20px;
+      overflow:hidden;
+      transition:transform .4s,box-shadow .4s,border-color .4s;
+      position:relative;
+    }
+    .project-card:hover{
+      transform:translateY(-10px);
+      box-shadow:0 24px 60px rgba(0,0,0,.4);
+      border-color:rgba(91,155,248,.2);
+    }
+    /* color accent top bar */
+    .project-card::before{
+      content:"";position:absolute;top:0;left:0;right:0;height:3px;
+      background:linear-gradient(90deg,var(--blue),var(--violet));
+      opacity:0;transition:opacity .3s;
+    }
+    .project-card:hover::before{opacity:1;}
+
+    .project-img{
+      height:200px;overflow:hidden;position:relative;
+    }
+    .project-img img{
+      width:100%;height:100%;object-fit:cover;
+      transition:transform .6s;
+      filter:brightness(.85);
+    }
+    .project-card:hover .project-img img{transform:scale(1.08);}
+    .project-overlay{
+      position:absolute;inset:0;
+      background:linear-gradient(to top,rgba(5,7,15,.7) 0%,transparent 60%);
+    }
+    .project-badges{
+      position:absolute;bottom:12px;left:14px;
+      display:flex;gap:6px;flex-wrap:wrap;
+    }
+    .pbadge{
+      font-size:10px;padding:3px 9px;border-radius:10px;
+      background:rgba(5,7,15,.75);
+      color:var(--text);
+      border:1px solid rgba(255,255,255,.12);
+      backdrop-filter:blur(8px);font-weight:500;letter-spacing:.3px;
+    }
+    .project-body{padding:24px;}
+    .project-body h3{
+      font-family:'Syne',sans-serif;font-size:18px;font-weight:700;
+      margin-bottom:10px;color:var(--text);
+    }
+    .project-body p{
+      color:var(--muted);font-size:14px;line-height:1.7;
+      margin-bottom:20px;font-weight:300;
+    }
+    .project-link{
+      display:inline-flex;align-items:center;gap:6px;
+      color:var(--blue);text-decoration:none;font-size:13px;font-weight:600;
+      transition:gap .2s;letter-spacing:.3px;
+    }
+    .project-link:hover{gap:10px;}
+    .project-link svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;}
+
+    /* featured project (spans 2 cols) */
+    .project-card.featured{
+      grid-column:span 2;
+    }
+    .project-card.featured .project-img{height:260px;}
+    @media(max-width:700px){.project-card.featured{grid-column:span 1;}}
+
+    /* ── MORE BUTTON ── */
+    .more-wrap{text-align:center;margin-top:50px;}
+
+    /* ── CONTACT ── */
+    .contact-section{text-align:center;}
+    .contact-sub{
+      color:var(--muted);font-size:16px;max-width:480px;
+      margin:0 auto 50px;line-height:1.8;font-weight:300;
+    }
+    .contact-links{
+      display:flex;justify-content:center;gap:16px;flex-wrap:wrap;
+    }
+    .contact-link{
+      display:inline-flex;align-items:center;gap:10px;
+      padding:14px 28px;border-radius:50px;
+      background:var(--surface);
+      border:1px solid var(--border);
+      color:var(--text);text-decoration:none;font-size:14px;font-weight:500;
+      transition:border-color .3s,transform .2s,background .3s;
+      backdrop-filter:blur(10px);
+    }
+    .contact-link:hover{
+      border-color:rgba(91,155,248,.3);
+      background:rgba(91,155,248,.08);
+      transform:translateY(-3px);
+    }
+    .contact-link svg{width:16px;height:16px;fill:currentColor;}
+
+    /* ── FOOTER ── */
+    footer{
+      padding:30px 8%;
+      border-top:1px solid var(--border);
+      display:flex;align-items:center;justify-content:space-between;
+      flex-wrap:wrap;gap:12px;
+      color:var(--muted);font-size:13px;
+    }
+    footer a{color:var(--blue);text-decoration:none;}
+
+    /* ── SCROLL REVEAL ── */
+    .reveal{opacity:0;transform:translateY(40px);transition:.8s ease;}
+    .reveal.visible{opacity:1;transform:translateY(0);}
+
+    /* ── RESPONSIVE ── */
+    @media(max-width:900px){
+      .hero{grid-template-columns:1fr;text-align:center;padding-top:120px;gap:40px;}
+      .hero-desc{margin:0 auto 36px;}
+      .hero-btns{justify-content:center;}
+      .hero-stats{justify-content:center;}
+      .hero-right{order:-1;}
+      .about-grid{grid-template-columns:1fr;}
+      nav ul{display:none;}
+    }
+    @media(max-width:600px){
+      section{padding:70px 5%;}
+      nav{padding:16px 5%;}
+      .hero{padding:100px 5% 60px;}
+      .hero-name{letter-spacing:-1px;}
+      .avatar-card,.avatar-frame{width:260px;}
+      .avatar-frame{height:300px;}
+    }
+  </style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div id="cursor"></div>
+<div id="cursor-dot"></div>
+
+<!-- AMBIENT BLOBS -->
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+<div class="blob blob-3"></div>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="l-name">Sidra Tul Muntaha</div>
+  <div class="l-sub">CS Student &amp; Developer</div>
+  <div class="l-bar"><div class="l-bar-fill"></div></div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Sidra.</div>
+  <ul>
+    <li><a href="#about">About</a></li>
+    <li><a href="#skills">Skills</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <a href="https://github.com/sidra2244" target="_blank" class="nav-cta">GitHub →</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="hero-left">
+    <div class="hero-eyebrow"><span></span>CS Student · Developer · Builder</div>
+    <h1 class="hero-name">
+      Sidra<br>Tul<br><em>Muntaha</em>
+    </h1>
+    <p class="hero-desc">
+      A Computer Science student with a passion for building things — from interactive web interfaces to hardware-driven systems. I love bridging the gap between clean code and real-world impact.
+    </p>
+    <div class="hero-btns">
+      <a href="#projects" class="btn-primary">View My Work</a>
+      <a href="https://www.linkedin.com/in/sidra-267baa306/" target="_blank" class="btn-outline">LinkedIn ↗</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat-item"><h4>10+</h4><p>Projects Built</p></div>
+      <div class="stat-item"><h4>8+</h4><p>Languages & Frameworks</p></div>
+      <div class="stat-item"><h4>∞</h4><p>Curiosity</p></div>
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <div class="avatar-card">
+      <div class="deco-ring"></div>
+      <div class="avatar-frame">
+        <!-- Illustrated SVG avatar — elegant and professional -->
+        <img src="profile.jpeg" alt="Sidra Tul Muntaha"
+  style="width:100%;height:100%;object-fit:cover;border-radius:28px;">
+          
+      </div>
+      <div class="avatar-badge">
+        <div class="badge-dot"></div>
+        <span>Open to opportunities</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="section-label">About</div>
+  <h2 class="section-title">Who I <span>Am</span></h2>
+  <div class="about-grid">
+    <div class="about-text reveal">
+      <p>
+        I'm <strong>Sidra Tul Muntaha</strong>, a Computer Science undergraduate with a genuine love for building things that work. My interest spans both sides of the stack — I enjoy crafting clean, interactive web interfaces just as much as designing hardware-driven systems from the ground up.
+      </p>
+      <p>
+        What drives me is the <strong>intersection of software and real-world problem-solving</strong>. Whether it's a Python app that talks to an API, a Verilog FSM controlling an elevator, or a mobile app connecting communities — I care about the outcome, not just the code.
+      </p>
+      <p>
+        I'm a <strong>fast learner and a creative thinker</strong> who thrives on side projects, open-source exploration, and learning by doing. Every project I take on teaches me something new, and I'm always looking for the next challenge worth solving.
+      </p>
+      <div class="tag-row" style="margin-top:20px;">
+        <span class="tag">Front-End Dev</span>
+        <span class="tag">Hardware & Robotics</span>
+        <span class="tag">Problem Solver</span>
+        <span class="tag">Continuous Learner</span>
+      </div>
+    </div>
+    <div class="about-sidebar reveal">
+      <div class="info-card">
+        <div class="info-card-label">Education</div>
+        <h4>BS Computer Science</h4>
+        <p>Undergraduate student building a strong foundation in algorithms, software engineering, database systems, digital logic, and OOP — with hands-on projects in every semester.</p>
+      </div>
+      <div class="info-card">
+        <div class="info-card-label">Focus Areas</div>
+        <h4>What I work on</h4>
+        <div class="tag-row">
+          <span class="tag">Web Development</span>
+          <span class="tag">Mobile Apps</span>
+          <span class="tag">Hardware Systems</span>
+          <span class="tag">Databases</span>
+          <span class="tag">Data Structures</span>
+        </div>
+      </div>
+      <div class="info-card">
+        <div class="info-card-label">Contact</div>
+        <h4>Let's connect</h4>
+        <p>sidraa9721@gmail.com</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SKILLS -->
+<section id="skills" class="skills-section">
+  <div class="section-label">Skills</div>
+  <h2 class="section-title">What I <span>Know</span></h2>
+  <div class="skills-grid">
+
+    <div class="skill-card reveal">
+      <div class="skill-icon">⚙️</div>
+      <h3>Programming Languages</h3>
+      <div class="skill-tags">
+        <span class="skill-tag">C</span>
+        <span class="skill-tag">C++</span>
+        <span class="skill-tag">Python</span>
+        <span class="skill-tag">Java</span>
+        <span class="skill-tag">JavaScript</span>
+        <span class="skill-tag">Assembly</span>
+      </div>
+    </div>
+
+    <div class="skill-card reveal">
+      <div class="skill-icon">🌐</div>
+      <h3>Web Development</h3>
+      <div class="skill-tags">
+        <span class="skill-tag">HTML5</span>
+        <span class="skill-tag">CSS3</span>
+        <span class="skill-tag">JavaScript</span>
+        <span class="skill-tag">Responsive Design</span>
+      </div>
+    </div>
+
+    <div class="skill-card reveal">
+      <div class="skill-icon">📱</div>
+      <h3>Mobile Development</h3>
+      <div class="skill-tags">
+        <span class="skill-tag">React Native</span>
+        <span class="skill-tag">Cross-platform</span>
+      </div>
+    </div>
+
+    <div class="skill-card reveal">
+      <div class="skill-icon">🗄️</div>
+      <h3>Databases</h3>
+      <div class="skill-tags">
+        <span class="skill-tag">SQL</span>
+        <span class="skill-tag">MySQL</span>
+        <span class="skill-tag">JDBC</span>
+        <span class="skill-tag">XAMPP</span>
+      </div>
+    </div>
+
+    <div class="skill-card reveal">
+      <div class="skill-icon">🛠️</div>
+      <h3>Tools & Platforms</h3>
+      <div class="skill-tags">
+        <span class="skill-tag">GitHub</span>
+        <span class="skill-tag">VS Code</span>
+        <span class="skill-tag">Packet Tracer</span>
+        <span class="skill-tag">Canva</span>
+        <span class="skill-tag">Photoshop</span>
+      </div>
+    </div>
+
+    <div class="skill-card reveal">
+      <div class="skill-icon">🤖</div>
+      <h3>Hardware & Systems</h3>
+      <div class="skill-tags">
+        <span class="skill-tag">Arduino</span>
+        <span class="skill-tag">Verilog</span>
+        <span class="skill-tag">FSM Design</span>
+        <span class="skill-tag">Sensors</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- PROJECTS -->
+<section id="projects">
+  <div class="section-label">Projects</div>
+  <h2 class="section-title">Things I've <span>Built</span></h2>
+  <div class="projects-grid">
+
+    <!-- PROJECT: Save2Serve (featured) -->
+    <div class="project-card featured reveal">
+      <div class="project-img">
+        <img src="https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=900&auto=format&fit=crop" alt="Save2Serve Mobile App"/>
+        <div class="project-overlay"></div>
+        <div class="project-badges">
+          <span class="pbadge">React Native</span>
+          <span class="pbadge">Mobile App</span>
+          <span class="pbadge">Featured</span>
+        </div>
+      </div>
+      <div class="project-body">
+        <h3>Save2Serve Mobile App</h3>
+        <p>A full-featured mobile application built with React Native that helps users manage and discover services efficiently. Designed with a clean, intuitive UI and smooth user experience across both iOS and Android platforms.</p>
+        <a href="https://github.com/sidra2244/Save2Serve-Mobile-App" target="_blank" class="project-link">
+          View on GitHub <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- PROJECT: Line Following Robot -->
+    <div class="project-card reveal">
+      <div class="project-img">
+        <img src="https://static.vecteezy.com/system/resources/thumbnails/047/327/945/small/futuristic-yellow-allterrain-robot-vehicle-photo.jpg" alt="Line Following Robot"/>
+        <div class="project-overlay"></div>
+        <div class="project-badges">
+          <span class="pbadge">Arduino</span>
+          <span class="pbadge">Robotics</span>
+          <span class="pbadge">Sensors</span>
+        </div>
+      </div>
+      <div class="project-body">
+        <h3>Line Following Robot</h3>
+        <p>An autonomous robot that follows a predefined path using IR sensors and a microcontroller-based motor control system. Built from scratch with hardware interfacing, sensor calibration, and real-time decision logic.</p>
+        <a href="https://github.com/sidra2244/line-following-robot" target="_blank" class="project-link">
+          View on GitHub <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- PROJECT: Elevator Controller -->
+    <div class="project-card reveal">
+      <div class="project-img">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ4OcFpqSWL_ZvGqZHGD9msxkshhWiCklI1Uw&s" alt="Elevator Controller"/>
+        <div class="project-overlay"></div>
+        <div class="project-badges">
+          <span class="pbadge">Verilog</span>
+          <span class="pbadge">FSM</span>
+          <span class="pbadge">Digital Logic</span>
+        </div>
+      </div>
+      <div class="project-body">
+        <h3>4-Floor Elevator Controller</h3>
+        <p>A hardware-level elevator control system for a 4-floor building, implemented using Verilog HDL and a Finite State Machine (FSM). Models real-world elevator behavior including floor requests, door control, and direction logic.</p>
+        <a href="https://github.com/sidra2244/Elevator-Controller-System" target="_blank" class="project-link">
+          View on GitHub <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- PROJECT: Online Food Ordering -->
+    <div class="project-card reveal">
+      <div class="project-img">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT3rM3rqo2wbcPCTpRCfEErhjx5BircoWg47A&s" alt="Online Food Ordering System"/>
+        <div class="project-overlay"></div>
+        <div class="project-badges">
+          <span class="pbadge">Java</span>
+          <span class="pbadge">JDBC</span>
+          <span class="pbadge">OOP</span>
+          <span class="pbadge">DBMS</span>
+        </div>
+      </div>
+      <div class="project-body">
+        <h3>Online Food Ordering System</h3>
+        <p>A complete food ordering application built using Java and JDBC with full OOP design principles. Features menu browsing, cart management, order placement, and database-backed persistence using MySQL.</p>
+        <a href="https://github.com/sidra2244/OOP_DBMS_Online-Food-Ordering-System" target="_blank" class="project-link">
+          View on GitHub <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- PROJECT: Weather App -->
+    <div class="project-card reveal">
+      <div class="project-img">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcScvfpyYgf-cB0_zP_BWn5Ij0772Vgj9iErPA&s" alt="Weather Application"/>
+        <div class="project-overlay"></div>
+        <div class="project-badges">
+          <span class="pbadge">Python</span>
+          <span class="pbadge">REST API</span>
+        </div>
+      </div>
+      <div class="project-body">
+        <h3>Weather Application</h3>
+        <p>A Python-based weather app that fetches real-time meteorological data from a public weather API. Displays temperature, humidity, wind speed, and conditions for any searched city with a clean terminal or GUI output.</p>
+        <a href="https://github.com/sidra2244/Weather-Application" target="_blank" class="project-link">
+          View on GitHub <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- PROJECT: Electricity Bill Generator -->
+    <div class="project-card reveal">
+      <div class="project-img">
+        <img src="https://images.unsplash.com/photo-1497435334941-8c899ee9e8e9?w=700&auto=format&fit=crop" alt="Electricity Bill Generator"/>
+        <div class="project-overlay"></div>
+        <div class="project-badges">
+          <span class="pbadge">C</span>
+          <span class="pbadge">CLI App</span>
+        </div>
+      </div>
+      <div class="project-body">
+        <h3>Electricity Bill Generator</h3>
+        <p>A command-line utility written in C that calculates electricity bills based on unit consumption, applies tiered pricing, and generates formatted receipts. Demonstrates strong understanding of C logic, structs, and file handling.</p>
+        <a href="https://github.com/sidra2244/Electricity-bill-generator" target="_blank" class="project-link">
+          View on GitHub <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- PROJECT: Phone Directory -->
+    <div class="project-card reveal">
+      <div class="project-img">
+        <img src="https://images.unsplash.com/photo-1534536281715-e28d76689b4d?w=700&auto=format&fit=crop" alt="Phone Directory"/>
+        <div class="project-overlay"></div>
+        <div class="project-badges">
+          <span class="pbadge">C++</span>
+          <span class="pbadge">Data Structures</span>
+        </div>
+      </div>
+      <div class="project-body">
+        <h3>Phone Directory — Data Structures</h3>
+        <p>A C++ phone directory application that implements core data structures (linked lists, hash maps, binary search trees) for fast contact insertion, search, and deletion. A deep-dive into algorithmic efficiency applied to a real use case.</p>
+        <a href="https://github.com/sidra2244/Data-Structure-Phone-Directory" target="_blank" class="project-link">
+          View on GitHub <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- PROJECT: Doctor Appointment -->
+    <div class="project-card reveal">
+      <div class="project-img">
+        <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=700&auto=format&fit=crop" alt="Doctor Appointment System"/>
+        <div class="project-overlay"></div>
+        <div class="project-badges">
+          <span class="pbadge">Web</span>
+          <span class="pbadge">Healthcare</span>
+        </div>
+      </div>
+      <div class="project-body">
+        <h3>Online Doctor Appointment System</h3>
+        <p>A healthcare management web system enabling patients to browse doctors, select time slots, and book appointments online. Features an organized scheduling interface with patient and doctor views.</p>
+        <a href="https://github.com/sidra2244/Onilne-Doctor-Appointment-System" target="_blank" class="project-link">
+          View on GitHub <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- PROJECT: AI Voice Contact Manager -->
+    <div class="project-card reveal">
+      <div class="project-img">
+        <img src="https://images.unsplash.com/photo-1589254065878-42c9da997008?w=700&auto=format&fit=crop" alt="AI Voice Contact Manager"/>
+        <div class="project-overlay"></div>
+        <div class="project-badges">
+          <span class="pbadge">AI</span>
+          <span class="pbadge">Voice</span>
+          <span class="pbadge">Python</span>
+        </div>
+      </div>
+      <div class="project-body">
+        <h3>AI Voice Controlled Contact Manager</h3>
+        <p>An AI-powered application that uses voice recognition to perform contact management operations — add, search, call, and delete contacts — entirely through spoken commands, making accessibility a first-class feature.</p>
+        <a href="https://github.com/sidra2244/AI_Voice-Controlled-Contact-Manager" target="_blank" class="project-link">
+          View on GitHub <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- PROJECT: DLD Sensor Alarm -->
+    <div class="project-card reveal">
+      <div class="project-img">
+        <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=700&auto=format&fit=crop" alt="Rain and Fire Sensor Alarm"/>
+        <div class="project-overlay"></div>
+        <div class="project-badges">
+          <span class="pbadge">Hardware</span>
+          <span class="pbadge">DLD</span>
+          <span class="pbadge">Sensors</span>
+        </div>
+      </div>
+      <div class="project-body">
+        <h3>Rain & Fire Sensor Alarm System</h3>
+        <p>A hardware safety system using rain and fire sensors to detect environmental hazards and trigger alerts. Designed using digital logic principles, this project demonstrates applied DLD concepts with real sensor integration.</p>
+        <a href="https://github.com/sidra2244/DLD_Rain-And-Fire-Sensor-Alarm" target="_blank" class="project-link">
+          View on GitHub <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="more-wrap">
+    <a href="https://github.com/sidra2244?tab=repositories" target="_blank" class="btn-outline">
+      View All Repositories →
+    </a>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact" class="contact-section">
+  <div class="section-label">Contact</div>
+  <h2 class="section-title" style="margin-bottom:16px;">Let's <span>Connect</span></h2>
+  <p class="contact-sub">
+    Whether it's a collaboration, an internship opportunity, or just a conversation about tech — my inbox is always open.
+  </p>
+  <div class="contact-links">
+    <a href="https://github.com/sidra2244" target="_blank" class="contact-link">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+      GitHub
+    </a>
+    <a href="https://www.linkedin.com/in/sidra-267baa306/" target="_blank" class="contact-link">
+      <svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+      LinkedIn
+    </a>
+    <a href="https://mail.google.com/mail/?view=cm&fs=1&to=sidraa9721@gmail.com" target="_blank" class="contact-link">
+      <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+      Email Me
+    </a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <span>© 2026 Sidra Tul Muntaha</span>
+  <span>Designed & built with ♥ by <a href="https://github.com/sidra2244" target="_blank">Sidra</a></span>
+</footer>
+
+<!-- SCRIPTS -->
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const dot = document.getElementById('cursor-dot');
+  document.addEventListener('mousemove', e => {
+    cursor.style.left = e.clientX + 'px';
+    cursor.style.top = e.clientY + 'px';
+    dot.style.left = e.clientX + 'px';
+    dot.style.top = e.clientY + 'px';
+  });
+
+  // Loader dismiss
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      const l = document.getElementById('loader');
+      if(l) l.style.display = 'none';
+    }, 3800);
+  });
+
+  // Scroll reveal
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if(e.isIntersecting) e.target.classList.add('visible');
+    });
+  }, {threshold: 0.1});
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // Active nav link highlight
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('nav ul a');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => {
+      if(window.scrollY >= s.offsetTop - 200) current = s.id;
+    });
+    navLinks.forEach(a => {
+      a.style.color = a.getAttribute('href') === '#' + current ? '#e2e8f0' : '';
+    });
+  });
+</script>
+</body>
+</html>
